@@ -1,5 +1,6 @@
 const path = require("node:path");
 const crypto = require("node:crypto");
+const cluster = require("cluster");
 const fs = require("node:fs/promises");
 const { pipeline } = require("node:stream/promises");
 const util = require("../../lib/util");
@@ -7,7 +8,10 @@ const DB = require("../DB");
 const FF = require("../../lib/FF");
 const JobQueue = require("../../lib/JobQueue");
 
-const jobs = new JobQueue();
+let jobs;
+if (cluster.isPrimary) {
+  jobs = new JobQueue();
+}
 
 // Return the list of all the videos that a logged in user has uploaded
 const getVideos = (req, res, handleErr) => {
@@ -118,12 +122,19 @@ const resizeVideo = async (req, res, handleErr) => {
   video.resizes[`${width}x${height}`] = { processing: true };
   DB.save();
 
-  jobs.enqueue({
-    type: "resize",
-    videoId,
-    width,
-    height,
-  });
+  if (cluster.isPrimary) {
+    jobs.enqueue({
+      type: "resize",
+      videoId,
+      width,
+      height,
+    });
+  } else {
+    process.send({
+      messageType: "new-resize",
+      data: { videoId, width, height },
+    });
+  }
 
   res.status(200).json({
     status: "success",
