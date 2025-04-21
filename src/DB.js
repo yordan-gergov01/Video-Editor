@@ -6,7 +6,7 @@ const sessionsPath = "./data/sessions";
 
 class DB {
   constructor() {
-    this.video = JSON.parse(fs.readFileSync(videosPath, "utf-8"));
+    this.videos = JSON.parse(fs.readFileSync(videosPath, "utf8"));
     /*
      A sample object in this users array would look like:
      { id: 1, name: "Liam Brown", username: "liam23", password: "string" }
@@ -21,7 +21,7 @@ class DB {
   }
 
   update() {
-    this.videos = JSON.parse(fs.readFileSync(videosPath, "utf-8"));
+    this.videos = JSON.parse(fs.readFileSync(videosPath, "utf8"));
     this.users = JSON.parse(fs.readFileSync(usersPath, "utf8"));
     this.sessions = JSON.parse(fs.readFileSync(sessionsPath, "utf8"));
   }
